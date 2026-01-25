@@ -23,12 +23,23 @@ class ValidationError extends ApiError {
 }
 
 const errorHandler = (err, req, res, next) => {
-  res.status(500).json({
+  const status = Number(err?.status || err?.statusCode || 500);
+  const message = err?.message || "Internal server error";
+  const code = err?.code || "INTERNAL_SERVER_ERROR";
+  const details =
+    Array.isArray(err?.details) && err.details.length > 0
+      ? err.details
+      : undefined;
+
+  const payload = {
     error: {
-      message: "Internal server error",
-      code: "INTERNAL_SERVER_ERROR",
+      message,
+      code,
+      ...(details ? { details } : {}),
     },
-  });
+  };
+
+  res.status(status).json(payload);
 };
 
 export { ApiError, ForbiddenError, ValidationError };
